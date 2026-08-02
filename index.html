@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="选题台">
+<meta name="theme-color" content="#1e293b">
+<title>每日选题 · 口播稿工作台</title>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --text:#16191d; --text2:#666e7a; --text3:#98a1ad;
+  --line:#e6e8ec; --line2:#f0f1f4;
+  --primary:#2563eb; --primary-d:#1d4ed8;
+  --travel:#0d9488; --travel-bg:#e7f6f4;
+  --ai:#7c3aed; --ai-bg:#f1eafe;
+  --danger:#dc2626; --danger-bg:#fdecec;
+  --ok:#16a34a; --ok-bg:#e8f6ec;
+  --warn:#d97706; --warn-bg:#fdf3e3;
+  --r:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+input,textarea,select{font-family:inherit;font-size:16px}
+a{color:var(--primary);text-decoration:none}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px}
+.hd{background:#1e293b;color:#fff;padding:14px 0 16px;position:relative;overflow:hidden}
+.hd::after{content:"";position:absolute;right:-60px;top:-70px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.045)}
+.hd-row{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.hd-title{font-size:17px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.hd-sub{font-size:12.5px;color:#a8b4c6;margin-top:3px}
+.hd-acts{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.hbtn{background:rgba(255,255,255,.11);color:#e7edf5;border-radius:9px;padding:8px 11px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px;min-height:38px}
+.hbtn:hover{background:rgba(255,255,255,.2)}
+.hbtn svg{width:14px;height:14px;flex:none}
+
+.tipbar{background:var(--warn-bg);color:#8a5a08;font-size:13px;padding:9px 14px;display:none;align-items:center;gap:8px;border-bottom:1px solid #f2e3c6}
+.tipbar.on{display:flex}
+.tipbar button{margin-left:auto;font-weight:700;color:#8a5a08;padding:4px 8px;font-size:12.5px}
+
+/* ---------- section / card ---------- */
+.sec{margin-top:16px}
+.sec-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sec-hd h2{font-size:15.5px;margin:0;font-weight:700;letter-spacing:.2px}
+.sec-hd .cnt{font-size:12px;color:var(--text3);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+
+/* ---------- today ---------- */
+.today{background:linear-gradient(180deg,#fff 0,#fcfdff 100%);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+.today-h{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.today-h .dot{width:8px;height:8px;border-radius:50%;background:var(--danger);flex:none;animation:bp 1.8s infinite}
+@keyframes bp{0%,100%{opacity:1}50%{opacity:.35}}
+.today-h h2{font-size:15.5px;margin:0;font-weight:700}
+.today-h .n{margin-left:auto;font-size:12px;color:var(--text2)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.stat{background:#f7f8fa;border-radius:10px;padding:9px 8px;text-align:center}
+.stat b{display:block;font-size:19px;line-height:1.25;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--text2)}
+.stat.od b{color:var(--danger)}
+.stat.dn b{color:var(--ok)}
+.tlist{display:flex;flex-direction:column;gap:7px}
+.titem{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;background:#f7f8fa;font-size:13.5px}
+.titem.od{background:var(--danger-bg)}
+.titem .bd{flex:1;min-width:0}
+.titem .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titem .m{font-size:11.5px;color:var(--text2);margin-top:1px}
+.titem.od .m{color:#b03636}
+.titem .go{flex:none;background:var(--text);color:#fff;border-radius:8px;padding:0 12px;height:34px;font-size:12.5px;font-weight:600}
+.titem.od .go{background:var(--danger)}
+.empty{text-align:center;padding:22px 12px;color:var(--text3);font-size:13.5px}
+.empty svg{width:34px;height:34px;opacity:.3;display:block;margin:0 auto 8px}
+
+/* ---------- track tabs ---------- */
+.ttabs{display:flex;gap:8px;margin-bottom:12px}
+.ttab{flex:1;border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 8px;text-align:center;font-weight:700;font-size:13.5px;color:var(--text2);min-height:46px;transition:.15s}
+.ttab .s{display:block;font-size:11px;font-weight:600;color:var(--text3);margin-top:1px}
+.ttab[data-k="travel"].on{background:var(--travel-bg);border-color:var(--travel);color:#0b6b62}
+.ttab[data-k="ai"].on{background:var(--ai-bg);border-color:var(--ai);color:#6127c4}
+.ttab[data-k="all"].on{background:#e8eefc;border-color:var(--primary);color:var(--primary-d)}
+.ttab.on .s{color:inherit;opacity:.75}
+
+/* ---------- topic ---------- */
+.topic{margin-bottom:12px;overflow:hidden}
+.tp-hd{padding:13px 14px;display:flex;gap:11px;align-items:flex-start}
+.tp-idx{flex:none;width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;color:#fff}
+.tk-travel .tp-idx{background:var(--travel)}
+.tk-ai .tp-idx{background:var(--ai)}
+.tp-main{flex:1;min-width:0}
+.tp-t{font-size:15.5px;font-weight:700;line-height:1.42;letter-spacing:.1px}
+.tp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:11px;padding:2.5px 7px;border-radius:6px;background:#f0f1f4;color:var(--text2);font-weight:600}
+.tk-travel .tag.hot{background:var(--travel-bg);color:#0b6b62}
+.tk-ai .tag.hot{background:var(--ai-bg);color:#6127c4}
+.tag.hot{font-weight:700}
+.tp-why{margin-top:9px;font-size:13px;color:var(--text2);background:#f7f8fa;border-radius:9px;padding:8px 10px;line-height:1.55}
+.tp-why b{color:var(--text);font-weight:700}
+.fold{border-top:1px solid var(--line2)}
+.fold-b{width:100%;text-align:left;padding:11px 14px;font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px;min-height:44px}
+.fold-b svg{width:13px;height:13px;transition:.2s}
+.fold-b.open svg{transform:rotate(90deg)}
+.fold-c{display:none;padding:0 14px 13px}
+.fold-c.open{display:block}
+.facts{margin:0;padding-left:17px}
+.facts li{font-size:12.8px;color:var(--text2);line-height:1.62;margin-bottom:5px}
+
+/* ---------- script ---------- */
+.scripts{border-top:1px solid var(--line2);padding:11px 14px 13px;background:#fbfcfd}
+.sc{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
+.sc:last-child{margin-bottom:0}
+.sc-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.sc-a{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:6px;background:#eef2f7;color:#41546b}
+.sc-m{font-size:11.5px;color:var(--text3);font-variant-numeric:tabular-nums}
+.sc-st{margin-left:auto;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+.st-new{background:#f0f1f4;color:var(--text2)}
+.st-pick{background:var(--warn-bg);color:#a15c06}
+.st-shot{background:#e8eefc;color:var(--primary-d)}
+.st-pub{background:var(--ok-bg);color:#15803d}
+.sc-tx{font-size:14px;line-height:1.78;color:#252a31;max-height:78px;overflow:hidden;position:relative;transition:max-height .25s;cursor:pointer}
+.sc-tx::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff)}
+.sc-tx.open{max-height:2000px}
+.sc-tx.open::after{display:none}
+.sc-acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.sbtn{border:1px solid var(--line);border-radius:9px;padding:0 11px;height:38px;font-size:12.5px;font-weight:600;color:var(--text2);display:inline-flex;align-items:center;gap:5px;background:#fff}
+.sbtn svg{width:13px;height:13px}
+.sbtn:hover{background:#f7f8fa}
+.sbtn.pri{background:var(--text);color:#fff;border-color:var(--text)}
+.sbtn.pri:hover{background:#2b3138}
+.sbtn.act{background:var(--ok-bg);border-color:#bfe3c9;color:#15803d}
+.sbtn.od{background:var(--danger-bg);border-color:#f3cfcf;color:var(--danger)}
+
+/* ---------- refs ---------- */
+.form{padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.form input,.form textarea,.form select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--text);min-height:46px}
+.form textarea{min-height:74px;resize:vertical;line-height:1.6}
+.frow{display:flex;gap:9px}
+.frow>*{flex:1;min-width:0}
+.stars{display:flex;gap:3px;align-items:center}
+.star{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.star svg{width:21px;height:21px}
+.star svg path{fill:#dfe3e8}
+.star.on svg path{fill:#f5a623}
+.ref{padding:12px 14px;border-bottom:1px solid var(--line2)}
+.ref:last-child{border-bottom:none}
+.ref-h{display:flex;align-items:flex-start;gap:9px}
+.ref-t{font-weight:700;font-size:14.5px;flex:1;min-width:0;line-height:1.45}
+.ref-m{font-size:12px;color:var(--text3);margin-top:4px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.ref-n{font-size:13px;color:var(--text2);margin-top:7px;background:#f7f8fa;border-radius:9px;padding:8px 10px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.ref-l{font-size:12.5px;margin-top:6px;word-break:break-all;display:inline-block}
+.xbtn{flex:none;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text3)}
+.xbtn:hover{background:var(--danger-bg);color:var(--danger)}
+.xbtn svg{width:15px;height:15px}
+
+/* ---------- bottom nav ---------- */
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:60}
+.nav button{flex:1;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--text3);min-height:56px}
+.nav button svg{width:21px;height:21px}
+.nav button.on{color:var(--primary)}
+.nav .bdg{position:absolute;top:5px;margin-left:22px;background:var(--danger);color:#fff;font-size:9.5px;line-height:1;padding:3px 5px;border-radius:8px;font-weight:700}
+
+/* ---------- teleprompter ---------- */
+.tele{position:fixed;inset:0;background:#0e1116;color:#f2f4f7;z-index:200;display:none;flex-direction:column}
+.tele.on{display:flex}
+.tele-hd{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid #232a33;flex:none}
+.tele-hd .tt{font-size:13px;color:#8e9aa8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbtn{background:#1c222b;color:#cfd7e0;border-radius:8px;min-width:40px;height:38px;padding:0 11px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.tbtn svg{width:15px;height:15px}
+.tele-bd{flex:1;overflow-y:auto;padding:24px 20px 90px;-webkit-overflow-scrolling:touch}
+.tele-tx{font-size:26px;line-height:2.05;letter-spacing:.6px;max-width:820px;margin:0 auto;white-space:pre-wrap}
+.tele-ft{position:absolute;left:0;right:0;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(14,17,22,0),#0e1116 32%);display:flex;gap:8px;align-items:center;justify-content:center}
+
+/* ---------- modal ---------- */
+.mask{position:fixed;inset:0;background:rgba(12,16,22,.55);z-index:150;display:none;align-items:center;justify-content:center;padding:18px}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:400px;width:100%;padding:20px;box-shadow:0 18px 44px rgba(0,0,0,.22)}
+.modal h3{margin:0 0 8px;font-size:16.5px}
+.modal p{margin:0 0 16px;color:var(--text2);font-size:13.5px;line-height:1.65}
+.modal-a{display:flex;gap:9px}
+.modal-a button{flex:1;height:46px;border-radius:11px;font-weight:700;font-size:14px}
+.mb-c{background:#f0f1f4;color:var(--text)}
+.mb-d{background:var(--danger);color:#fff}
+
+/* ---------- toast / misc ---------- */
+.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(14px);bottom:calc(84px + env(safe-area-inset-bottom));background:#16191d;color:#fff;padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:.22s;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.pane{display:none}
+.pane.on{display:block}
+.datesel{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);margin-bottom:11px;flex-wrap:wrap}
+.datesel select{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;min-height:40px;font-size:14px;font-weight:600;color:var(--text)}
+.badge-live{font-size:10.5px;background:var(--ok-bg);color:#15803d;padding:3px 7px;border-radius:6px;font-weight:700}
+.badge-old{font-size:10.5px;background:var(--warn-bg);color:#a15c06;padding:3px 7px;border-radius:6px;font-weight:700}
+.foot{text-align:center;color:var(--text3);font-size:11.5px;padding:22px 12px 8px;line-height:1.7}
+
+@media(min-width:768px){
+  body{padding-bottom:24px}
+  .wrap{padding:0 22px}
+  .hd{padding:18px 0 20px}
+  .hd-title{font-size:19px}
+  .nav{position:static;background:transparent;backdrop-filter:none;border-top:none;border-bottom:1px solid var(--line);max-width:1180px;margin:14px auto 0;padding:0 22px;gap:4px}
+  .nav button{flex:none;flex-direction:row;gap:7px;font-size:13.5px;padding:11px 15px;border-radius:10px 10px 0 0;min-height:46px}
+  .nav button.on{background:#fff;border:1px solid var(--line);border-bottom-color:#fff;margin-bottom:-1px}
+  .nav .bdg{position:static;margin-left:2px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .topics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  .topics-grid .topic{margin-bottom:0}
+  .tele-tx{font-size:31px}
+}
+@media(max-width:400px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .hbtn span{display:none}
+  .hbtn{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="wrap hd-row">
+    <div>
+      <div class="hd-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="m3 7 9 5 9-5"/><path d="M12 22V12"/></svg>
+        每日选题 · 口播稿台
+      </div>
+      <div class="hd-sub" id="hdSub">加载中…</div>
+    </div>
+    <div class="hd-acts">
+      <button class="hbtn" onclick="doExport()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span>导出备份</span></button>
+      <button class="hbtn" onclick="document.getElementById('impFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5"/><path d="M12 3v12"/></svg><span>导入恢复</span></button>
+      <button class="hbtn" onclick="askClear()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg><span>清空</span></button>
+    </div>
+  </div>
+</div>
+<input type="file" id="impFile" accept="application/json,.json" style="display:none" onchange="doImport(this)">
+
+<div class="tipbar" id="tipbar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:16px;height:16px;flex:none"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+  <span id="tipTx"></span>
+  <button onclick="hideTip()">知道了</button>
+</div>
+
+<div class="nav" id="nav">
+  <button class="on" data-p="today" onclick="go('today')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>今天要处理<span class="bdg" id="navBdg" style="display:none">0</span></button>
+  <button data-p="topics" onclick="go('topics')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>选题池</button>
+  <button data-p="scripts" onclick="go('scripts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>口播稿库</button>
+  <button data-p="refs" onclick="go('refs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>对标灵感</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ 今天要处理 ============ -->
+  <div class="pane on" id="p-today">
+    <div class="sec">
+      <div class="today">
+        <div class="today-h">
+          <span class="dot"></span><h2>今天要处理</h2>
+          <span class="n" id="todayN"></span>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="tlist" id="tlist"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-hd"><h2>今日速览</h2><span class="cnt" id="ovCnt"></span></div>
+      <div id="overview"></div>
+    </div>
+    <div class="foot" id="foot1"></div>
+  </div>
+
+  <!-- ============ 选题池 ============ -->
+  <div class="pane" id="p-topics">
+    <div class="sec">
+      <div class="datesel">
+        <span>内容日期</span>
+        <select id="dateSel" onchange="switchDate(this.value)"></select>
+        <span id="dateBadge"></span>
+      </div>
+      <div class="ttabs" id="ttabs1"></div>
+      <div id="topicList"></div>
+    </div>
+    <div class="foot" id="foot2"></div>
+  </div>
+
+  <!-- ============ 口播稿库 ============ -->
+  <div class="pane" id="p-scripts">
+    <div class="sec">
+      <div class="datesel">
+        <span>内容日期</span>
+        <select id="dateSel2" onchange="switchDate(this.value)"></select>
+        <span id="dateBadge2"></span>
+      </div>
+      <div class="ttabs" id="ttabs2"></div>
+      <div class="ttabs" id="stfilter" style="margin-top:-4px"></div>
+      <div id="scriptList"></div>
+    </div>
+    <div class="foot" id="foot3"></div>
+  </div>
+
+  <!-- ============ 对标灵感 ============ -->
+  <div class="pane" id="p-refs">
+    <div class="sec">
+      <div class="sec-hd"><h2>加一条对标</h2></div>
+      <div class="card">
+        <div class="form">
+          <input id="rTitle" placeholder="标题 / 这条讲了什么（必填）" maxlength="120">
+          <div class="frow">
+            <select id="rTrack"><option value="travel">旅游攻略</option><option value="ai">AI 资讯与玩法</option><option value="other">其他</option></select>
+            <input id="rAuthor" placeholder="账号名" maxlength="40">
+          </div>
+          <input id="rLink" placeholder="链接（选填）" inputmode="url">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:13px;color:var(--text2);font-weight:600">参考价值</span>
+            <div class="stars" id="rStars"></div>
+          </div>
+          <textarea id="rNote" placeholder="它凭什么火？我能抄哪一点？（越具体越有用）" maxlength="600"></textarea>
+          <button class="sbtn pri" style="height:48px;justify-content:center;font-size:14.5px" onclick="addRef()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>存进灵感库
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-hd"><h2>灵感库</h2><span class="cnt" id="refCnt"></span></div>
+      <div class="card" id="refList"></div>
+    </div>
+    <div class="foot" id="foot4"></div>
+  </div>
+
+</div>
+
+<!-- teleprompter -->
+<div class="tele" id="tele">
+  <div class="tele-hd">
+    <button class="tbtn" onclick="closeTele()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <span class="tt" id="teleTitle"></span>
+    <button class="tbtn" onclick="teleFont(-2)">A−</button>
+    <button class="tbtn" onclick="teleFont(2)">A+</button>
+  </div>
+  <div class="tele-bd" id="teleBd"><div class="tele-tx" id="teleTx"></div></div>
+  <div class="tele-ft">
+    <button class="tbtn" id="rollBtn" onclick="toggleRoll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>自动滚动</button>
+    <button class="tbtn" onclick="rollSpeed(-1)">慢</button>
+    <button class="tbtn" id="spdTx" style="pointer-events:none;min-width:56px">×1.0</button>
+    <button class="tbtn" onclick="rollSpeed(1)">快</button>
+  </div>
+</div>
+
+<!-- modal -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3 id="mkT"></h3><p id="mkP"></p>
+    <div class="modal-a">
+      <button class="mb-c" onclick="closeMask()">取消</button>
+      <button class="mb-d" id="mkOk">确认</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="packToday" type="application/json">{"date":"2026-08-02","updatedAt":"2026-08-02 10:00","tracks":[{"id":"travel","name":"旅游攻略","topics":[{"id":"tv1","title":"请3天休13天：国庆机票的黄金窗口就是这两周","hook":"今年九月底有个比春节还长的假，现在不动手就晚了。","why":"8月2号正好卡在国庆机票提前45-60天窗口的起点，这条现在发最值钱，过了8月中旬价值减半。全民相关，转发和收藏都高。","heat":"高","tags":["强时效","省钱","人人有用"],"facts":["2026年中秋为9月25日（周五）至27日（周日）共3天，国庆为10月1日（周四）至7日（周三）共7天，中间9月28、29、30日恰为三个工作日（国务院办公厅《关于2026年部分节假日安排的通知》，中国政府网；广州日报、钱江晚报2026年7月转载）","请下9月28-30日三天年假，可拼出9月25日至10月7日共13天连休，比2026年春节假期（9天）多4天（多家媒体口径一致，2026-07-31）","长假机票业内公认最佳预订窗口为提前45至60天，此时航司完成运力投放并集中释放首批折扣舱，8月中上旬即国庆票低位区间（网易《2026中秋国庆13天超长假期订票全攻略》2026-07-31）","中秋属3天小长假，建议提前20至30天预订，避开假期前最后10天的集中涨价（同上）","12306最多提前60天发售火车票，热门方向需卡放票时间抢（同上）","《职工带薪年休假条例》：工龄满1年即可享受至少5天年假，此方案仅消耗3天（新浪转载拼假攻略，2026-07）"],"scripts":[{"angle":"干货直给","text":"今年九月底有个比春节还长的假，很多人还没反应过来。中秋是9月25号周五到27号周日，国庆是10月1号周四到7号周三，中间28、29、30三天正好是工作日。这三天请下来，从9月25号一路休到10月7号，整整13天，比今年春节还多四天。重点在后面：长假机票的最佳预订窗口是提前45到60天，现在8月初，正好卡在国庆票放折扣舱的起点，8月中上旬是全年最划算的下单时段。太早买航司还没放折扣，挂的是基础价；太晚买低价舱早就空了，价格能翻倍。中秋这种三天小长假不一样，提前20到30天订就行，别提前太多。还有火车票，12306最多提前60天卖，热门方向基本卡点秒空，得掐着放票时间。假条我建议这周就去递，用年假别用事假，工资和全勤都不受影响。"},{"angle":"实操流程","text":"想拼这13天长假，按这个顺序走，别搞反了。第一步查年假余额，这套方案只消耗三天年假，工龄满一年就至少有五天，够用。第二步递假条，至少提前15个工作日交，附一份工作交接清单，写清楚谁替你对接，领导驳回的理由就少一大半。第三步等批下来再订票，别倒过来先买票后请假，批不下来退票手续费能吃掉你半张机票。第四步订票卡时间，国庆段提前45到60天，也就是现在到8月中；中秋段提前20到30天，别提前太多。第五步酒店只订能免费取消的房型，热门城市假期前一个月就可能满房，先占位后调整。最后留一手，年假别一次性用光，留一两天应付年底突发。整套流程走下来，钱和假都不浪费。"},{"angle":"反常识开场","text":"越早订票越便宜，这句话在长假上是错的。国庆机票不是一条从低到高的直线，是先高、再低、最后暴涨。太早的时候航司还没完成运力投放，挂的是基础价，折扣舱一张没放；到了提前45到60天，航司定价完成，第一批折扣舱集中释放，这才是全年低点；进入假期前最后十天，低价舱清空，价格直接翻倍。所以现在这个时间点很关键，8月初到8月中，正好是9月底那个13天长假的最佳下单窗口。同理，中秋那三天属于小长假，提前20到30天买就够，你现在冲进去买反而贵。别凭感觉抢，先看日历再看价格。这一趟往返省下来的钱，够你在目的地多住两晚好酒店。"}]},{"id":"tv2","title":"旅行社说欧洲卖不动，机票却跌到近年最低","hook":"跟团价降不下来，机票反而在跌，今年得拆开买。","why":"供需错位形成的窗口期，正好衔接13天长假的目的地决策。信息差强、有反差感，评论区容易吵起来。","heat":"高","tags":["信息差","出境","反直觉"],"facts":["飞友科技数据：2026年7月至8月中意航线计划航班量达1433班，较2019年同期增加565班，增幅约65.1%，国航、东航、海航、川航、吉祥五家航司竞争（腾讯新闻2026-07-25）","同程旅行《2026年暑运出行趋势预测报告》：暑运国际机票均价约1372元（含税费），同比上涨约11%，但中意等运力大增航线涨幅远低于平均水平","深圳、北京多家旅行社反馈今年暑期收客量约为往年七成，深圳业内称整体出团比去年同期差15%、出境差30%（腾讯新闻2026-07-25）","欧洲、美洲地接费用普遍上调，当地水电住宿成本增加，带动地接资源整体上涨约10%（中青旅遨游科技董事长韩杰等受访口径，2026-07-25）","欧洲6月底德国连创高温纪录、法国高温期间死亡人数明显上升，多地住宅和公共场所缺少空调，部分银发客群将西欧行程推迟至9至10月（同上）"],"scripts":[{"angle":"干货直给","text":"今年暑期出境游有个很反常的现象：旅行社说卖不动，机票反而便宜了。北京、深圳多家旅行社反馈，收客量只有往年的七成，出境跟团同比差了三成左右。但同一时间，国际运力在猛涨。中意航线七到八月计划航班量1433班，比2019年同期多了565班，增幅65%，五家航司在同一条线上抢客，票价被压到近年低位。同程的报告显示，暑运国际机票均价1372元，同比涨了11%，但中意这种运力暴增的航线，涨幅远低于平均。结论很清楚：跟团贵，自己飞便宜。欧洲地接成本今年涨了约一成，所以团费降不下来；但机票是市场化定价，供给多了就得让利。会自己订机票订酒店的人，今年占大便宜。"},{"angle":"横向对比","text":"同样去欧洲，今年跟团和自由行的差价拉得特别开。跟团这边，当地水电、住宿、地接费用普遍涨了约一成，旅行社收客又只有往年七成，团凑不满，成本摊不薄，报价降不下来。自由行这边完全相反，国际运力大幅增加，光中意航线七到八月就有1433班，比2019年同期多565班，国航、东航、海航、川航、吉祥五家在抢客，机票被打到近年低位。所以今年的最优解是拆开买：机票自己订，酒店自己订，只在当地买一两个需要中文向导的深度体验。另外提醒一句，欧洲今年高温厉害，六月底德国连创纪录，很多住宅和公共场所没空调，怕热的把行程挪到九、十月，价格更低，人还更少。"},{"angle":"反向劝退","text":"如果你今年打算跟团去欧洲，我劝你再算一笔账。旅行社报价里，地接成本今年涨了大概一成，而机票这块反而在跌，中意航线运力比2019年同期多了65%，五家航司抢客把票价压到近年低位。也就是说，你付的团费里，便宜下来的那部分被拿去补贴涨价的那部分，最后你没享受到机票降价的好处。还有一个现实问题，欧洲多地住宅和公共场所没有空调，今年六月底德国连破高温纪录，法国高温期间死亡人数明显上升，八月的西欧对老人和小孩都不友好。已经有家庭把八月中旬的法意瑞长线直接延到明年寒假。真想去，两个选择：要么机票酒店自己订，要么把时间挪到九月底十月初。"}]},{"id":"tv3","title":"成都飞大理259，八月下旬西南航线跌到1.6折","hook":"成都两百多飞大理，比高铁二等座还便宜。","why":"价格具体到数字，截图感强，适合做低成本口播。八月下旬是唯一窗口，九月一到价格立刻回去。","heat":"中高","tags":["省钱","国内游","可复用"],"facts":["去哪儿旅行数据：8月成都出发多条航线折扣低至1.6折——飞丽江最低270元（1.6折）、大理259元（1.6折）、西双版纳259元（1.8折）、贵阳280元（1.7折）、武汉281元（1.7折）、张家界200元（2.1折）、兰州230元（2.3折）、鄂尔多斯294元（2.3折）（腾讯新闻《早安双流》2026-07-30，票价不含机建燃油，数据截至7月29日）","航旅纵横民航官方直销平台数据：7月21日至8月31日国内航线机票预订量已超2263万张，同比增长超4%（2026-07）","重庆江北暑运国内航线：至西安、黄山、桂林、铜仁低至200元起；至长沙、武汉、南京、广州、上海低至230元起；至大连、珠海、泉州、北海、三亚低至300元起；至兰州、银川、吐鲁番、哈密低至330元起（中国交通报2026-07-01）","成都双流国际机场1号航站楼国际厅于7月30日重新启用，国航、川航、香港航空等7家航司的22个港澳台客运航班由天府机场转回双流（腾讯新闻2026-07-30）","7月1日至21日首乘旅客较6月同期增长超50%，多家航司推出首乘旅客优惠活动（同上）"],"scripts":[{"angle":"干货直给","text":"八月下旬想飞，西南这几条线的价格已经跌到不讲道理了。去哪儿的数据，成都出发部分航线折扣低到1.6折：成都飞大理259，西双版纳259，丽江270，贵阳280，武汉281，张家界200，兰州230，这些还不含机建燃油。重庆那边同样便宜，重庆到西安、黄山、桂林、铜仁两百元起，到长沙、武汉、南京、广州、上海两百三起。为什么这么便宜？暑运后半段学生返校，客座率掉下来，航司必须清仓。航旅纵横的数据，七月21号到八月31号国内航线预订量超过2263万张，同比只涨了4%，运力投放却还在加，价格自然扛不住。想省钱就盯这个区间，周二周三出发再便宜一档。另外成都双流T1国际厅七月30号重新启用了，飞港澳台的别跑错机场。"},{"angle":"避坑清单","text":"成都两百多飞大理，看着爽，但有几个坑得先说。第一，这些折扣价基本不含机建燃油，实际付款要再加一两百，看到259别以为是到手价。第二，1.6折的舱位数量极少，通常绑定不能退改，行程有变数的别贪这个价。第三，特价票多数是早班机或者红眼，落地凌晨机场大巴还没发车，打车进城的钱能把省下的机票钱吃掉一半。第四，行李额，超低价舱经常只给手提，托运要另买，往返多花一两百很常见。第五，成都双流T1国际厅七月30号重新启用，国航、川航、香港航空等七家航司的22个港澳台航班从天府转回双流，出发前一定看清票面机场。避开这五条，这波捡漏才是真便宜。"},{"angle":"数据向","text":"给几个具体数字，你自己判断值不值。航旅纵横的数据，七月21号到八月31号，国内航线机票预订量超过2263万张，同比增长只有4%。需求涨4%，运力还在往上加，结果就是票价撑不住。去哪儿的数据更直观，八月成都出发多条航线跌到1.6到2.3折：丽江270、大理259、西双版纳259、贵阳280、武汉281、张家界200、兰州230。重庆同样，山水线两百元起，都市线两百三起，滨海线三百起，西北线三百三起。这个价格什么概念？成都到大理的高铁二等座都不止这个数。所以八月下旬这段，飞比坐火车划算。要动手趁现在，开学前后这批尾单放完，中秋国庆一到，价格立刻回去。"}]},{"id":"tv4","title":"老外扎堆来中国避暑，被低估的是这批二三线城市","hook":"我们往外跑的时候，外国人正扎堆往中国跑。","why":"强反差，数据来自国家移民管理局，可信度高。角度新，同赛道很少有人从入境游反推国内玩法。","heat":"中高","tags":["反直觉","国内游","有争议"],"facts":["国家移民管理局：2026年上半年入境外国人达2291.4万人次，同比增长20.4%；其中免签入境1781.5万人次，同比上升30.6%（腾讯新闻2026-07-25引述）","网络平台数据：今年暑期入境游预订订单量同比增长超两成；截至6月30日，外籍游客入境航班已覆盖中国160个城市","深圳边检总站：6月以来经深圳机场口岸入境的欧洲国家旅客同比增长31.6%，累计查验入境外国人同比增长超20.6%，以观光休闲为主要目的的游客占比超45.2%（2026-07）","同程旅行旗下国际平台HopeGoo：7月以来爱丁堡、巴塞罗那、伦敦、马德里、罗马飞往中国的机票预订热度环比增幅均超两成，英国至中国主要城市部分航线预订热度同比增幅超80%","海外社交平台热议「到中国避暑」，被反复提及的关键词为全域空调、天然山海生态、消费科技感（腾讯新闻2026-07-25）"],"scripts":[{"angle":"反常识开场","text":"今年夏天最魔幻的一件事：中国人不太出去了，外国人反而扎堆往中国跑。国家移民管理局的数据，2026年上半年入境外国人2291.4万人次，同比增长20.4%，其中免签入境1781.5万人次，涨了30.6%。深圳边检的数字更夸张，六月以来经深圳机场口岸入境的欧洲旅客同比增长31.6%，其中四成五以上是纯观光休闲。同程旗下的国际平台数据，七月以来爱丁堡、巴塞罗那、伦敦、马德里、罗马飞中国的机票预订热度环比都涨了两成以上，英国到中国部分航线同比涨超80%。他们来干什么？避暑。欧洲很多住宅没空调，而中国是全域空调自由，加上山海生态和消费的科技感，这三个词在海外社交平台被反复提。"},{"angle":"故事切入","text":"我一个做民宿的朋友，今年夏天客源结构彻底变了，外国人占了快四成，去年这个数字还不到一成。他一开始以为是偶然，后来发现是趋势。国家移民管理局的数据，上半年入境外国人2291.4万人次，同比增长20.4%，其中免签入境1781.5万人次，涨了30.6%。截至六月30号，外籍游客的入境航班已经覆盖中国160个城市，早就不只是北上广。他们最在意的三件事很实在：空调、自然景观，还有支付和交通方不方便。这给我们的启发是反过来的——老外觉得值的东西，我们习以为常反而不去。真正被低估的，是那些空调覆盖好、山海资源好、消费又不贵的二三线城市。八月下旬机票正在跳水，刚好去试一趟。"},{"angle":"趋势判断","text":"入境游这波不是短期热度，是结构性变化，判断依据有三条。第一，免签政策的效果已经落到数据上，上半年免签入境1781.5万人次，同比涨30.6%，明显快于入境总人次20.4%的增速，说明增量来自政策放开，不是自然恢复。第二，覆盖面在扩大，截至六月30号外籍游客入境航班已经覆盖160个城市，不再集中在几个门户机场。第三，需求端有硬理由，欧洲夏天极端高温，很多住宅和公共场所没空调，而中国是全域空调，这个差距不会因为过一年就消失。对做内容和做生意的人来说，机会在配套上：外语标识、外卡支付、离境退税、机场到景区的接驳。谁先补齐，谁先吃到这批客流。"}]},{"id":"tv5","title":"东南亚免签天数记混，第15天就算逾期滞留","hook":"新马泰30天，菲律宾只有14天，记错了要被罚。","why":"纯避坑向，长效不过期，收藏率高。日常没人专门讲天数差异，属于被忽略的高价值细节。","heat":"中","tags":["避坑","出境","收藏向"],"facts":["新加坡、马来西亚、泰国、菲律宾等热门出境目的地已对持中国普通护照人员实行免签入境：入境新、马、泰单次停留不超过30天，入境菲律宾单次停留不超过14天（中国交通报2026-07-01；各国免签政策适用要求以各国官方发布渠道信息为准）","免签停留天数按单次入境计算，不按自然年或自然月累计","重庆出发直飞曼谷、吉隆坡、马尼拉、新加坡、清迈、沙巴等东南亚免签目的地，单程含税票价低至723元；重庆直飞香港、澳门单程含税低至756元（中国交通报2026-07-01）","泰国普吉岛7、8月北京、上海、广州、深圳等主流城市可搜到2000-3000元往返平价机票（腾讯新闻2026-05-28）","出行前应以目的国官方发布渠道及中国领事服务网的最新政策为准（通用合规提示）"],"scripts":[{"angle":"干货直给","text":"东南亚免签这事，天数记混了是要出问题的。持中国普通护照，新加坡、马来西亚、泰国这三个国家，单次停留不超过30天；菲律宾不一样，单次停留不超过14天。这个天数按单次入境算，不是按一年累计，也不是按自然月。很多人默认都是30天，飞了菲律宾按30天安排行程，第15天就属于逾期滞留，罚款加限制入境，回程还可能被拒登机。第二个提醒，免签是免签证，不是免审查，落地还是要看回程机票、住宿证明和资金能力，材料不齐照样被拒。第三，政策随时会调整，出发前一定去目的国官方渠道或者中国领事服务网再确认一遍。价格方面给个参考，重庆直飞曼谷、吉隆坡、马尼拉、新加坡、清迈、沙巴，单程含税低到723元。"},{"angle":"避坑清单","text":"东南亚免签五条避坑，照着核对一遍再出发。第一，天数别记混，新马泰单次停留不超过30天，菲律宾只有14天，按单次入境算。第二，免签不等于免审查，边检要看回程机票、住宿预订和资金证明，缺一样就可能被要求补充说明。第三，护照有效期，多数国家要求入境时剩余六个月以上，很多人卡在这一条。第四，落地签和免签是两回事，免签不用交钱不用填申请，如果有人让你在机场交现金办手续，先确认是不是走错窗口。第五，政策是动态的，以目的国官方发布和中国领事服务网为准，别信过期攻略。价格上给个参考，重庆直飞曼谷、吉隆坡、马尼拉、新加坡、清迈、沙巴单程含税低至723元，飞香港澳门756元起。"},{"angle":"说人话版","text":"说人话解释一下免签到底是什么。免签就是你不用提前去大使馆递材料、交钱、等审批，拿着护照直接买票就能飞。但落地那一关还在，边检有权问你来干什么、住哪儿、什么时候走、身上有多少钱，答不上来或者材料对不上，一样可以把你退回来。所以免签省的是出发前的时间和钱，不是省掉入境审查。具体天数，新加坡、马来西亚、泰国单次停留不超过30天，菲律宾单次不超过14天，这个差别一定记住。还有一点，天数从入境当天开始算，不是从你买票那天算。出发前一周，去目的国官方渠道或者中国领事服务网核一遍最新政策，两分钟的事，能省掉一趟白跑。"}]}]},{"id":"ai","name":"AI 资讯与玩法","topics":[{"id":"ai1","title":"美团开源1.6T大模型，五万张国产卡跑通万亿参数","hook":"国产卡能不能扛万亿参数？这次有答案了。","why":"国产算力突破，情绪价值和信息量都足，评论区容易自发讨论。官方一手来源，安全。","heat":"高","tags":["强时效","国产","泛人群"],"facts":["美团正式开源万亿参数大模型 LongCat-2.0，总参数1.6T，平均激活约48B，动态范围33B至56B，原生支持1M超长上下文（美团官方新闻稿 meituan.com；美团技术博客 tech.meituan.com，2026-07-28）","官方表述：业界首个在五万卡国产算力集群上完成全流程训练与推理的万亿参数模型，同步开放国产卡推理代码（美团官方，2026-07）","架构上引入 LongCat 稀疏注意力和 N-gram Embedding，为真实 Agentic Coding 任务设计，强化代码理解、生成与执行（美团官方）","针对国产芯片显存与带宽受限，从模型层、芯片适配层、部署策略层三个方向做协同优化，目标是盘活存量国产算力（美团官方）","1M上下文量级参考：《三体》全集约一百多万字，可一次读完（网易转载科普口径，2026-08-01）"],"scripts":[{"angle":"干货直给","text":"美团把自家的万亿参数大模型 LongCat-2.0 开源了，这事比听起来重要。先说参数：总参数1.6T，平均激活约480亿，动态范围330亿到560亿，原生支持一百万token上下文。一百万token什么概念，一本《三体》全集也就一百多万字，它能一口气读完再跟你讨论细节。但真正的关键不是参数，是训练用的卡。官方说法，这是业界首个在五万卡国产算力集群上完成全流程训练与推理的万亿参数模型，而且同步开放了国产卡的推理代码。大模型被卡脖子，卡的就是算力。国产卡能不能扛万亿参数，之前一直是个问号，现在有了一个跑通的样本。美团还专门针对国产芯片显存和带宽受限，从模型架构、芯片适配到部署策略做了三层优化。"},{"angle":"说人话版","text":"用大白话讲讲美团开源这个模型为什么值得关注。第一，规模是真的大，总参数1.6T，也就是一万六千亿，但它每次只激活其中约四百八十亿，相当于养了一个几百人的专家团，来什么活只叫醒相关的几个人，所以又大又省。第二，上下文一百万token，一次能吞下一百多万字，长文档、整个代码库都塞得进去。第三，也是最关键的，它是在五万张国产算力卡上完成全流程训练和推理的，官方称业界首个。以前的普遍疑问是国产卡只能跑小模型，这次等于给了个答案。第四，开源，代码和国产卡推理优化一起放出来，别人可以直接拿去用。对普通人的意义是，国产算力这条路走通了，长期看模型价格还会往下走。"},{"angle":"趋势判断","text":"从美团这次开源，能看出三个走向。第一，国产算力从能用走到了能扛大活。LongCat-2.0总参数1.6T，官方称是业界首个在五万卡国产算力集群上完成全流程训练与推理的万亿参数模型，还同步开放了国产卡推理代码，这个信号比模型本身更重要。第二，大厂的竞争重点在往编程智能体上转。这个模型的架构就是围绕代码理解、生成和执行做的，引入了稀疏注意力和N-gram Embedding，说明大家赌的是模型能不能替人干完整的活，而不是陪你聊天。第三，开源正在变成基础设施策略。把模型和推理优化一起放出去，盘活的是市面上大量闲置的国产卡，这对整个生态的成本结构，影响会很长期。"}]},{"id":"ai2","title":"模型一个字没改，只换了教法，能力涨了六倍","hook":"同一副身体，换套训练方法，成绩差出六倍。","why":"强反直觉，且有硬跑分支撑。可以延伸到教育和个人成长，破圈潜力大。","heat":"高","tags":["反直觉","技术","成本"],"facts":["7月31日，DeepSeek通过API文档发布日志宣布 DeepSeek-V4-Flash 正式版 API 上线公测，V4-Pro 正式版将尽快发布（DeepSeek官方API文档；极客公园2026-08-01）","官方确认 DeepSeek-V4-Flash-0731 的模型结构、尺寸与预览版完全一致，底层基座未做改动，仅重新进行了后训练（DeepSeek官方；TechWeb 2026-08-01；极客网2026-08-01）","九项Agent基准中：DeepSWE 从预览版7.3分升至54.4分；Terminal Bench 2.1 得82.7，高于V4-Pro-Preview的72.1、GLM-5.2的81.0，逼近Opus-4.8的85.0（TechWeb引官方数据，2026-08-01）","规格：MoE架构，总参数2840亿，激活参数130亿，支持100万token上下文，可切换思考/非思考模式（TechWeb 2026-08-01）","网易有道8月1日宣布旗下AI Agent产品矩阵完成V4-Flash正式版全面接入，覆盖LobsterAI、有道词典、翻译、AI同传等，称同等任务复杂度下Token消耗更少（极客网2026-08-01）","待核实：「价格低至0.2元/百万tokens（缓存命中）」「价格仅为Claude的1/90」「Artificial Analysis智能指数50分、同类中位数17分」目前仅见单一媒体口径，未写入口播稿正文"],"scripts":[{"angle":"反常识开场","text":"堆参数不一定是唯一出路，这次DeepSeek给了个很硬的证据。七月31号，DeepSeek-V4-Flash正式版API上线公测。官方明确说明，这个0731版本的模型结构、尺寸和三个月前的预览版完全一致，底层骨架一点没动，只是重新做了一遍后训练。结果呢，智能体能力直接起飞。DeepSWE这个专门测真实长周期编程任务的基准，从预览版的7.3分涨到54.4分，涨了六倍多。Terminal Bench 2.1拿到82.7，超过自家V4-Pro预览版的72.1，也超过GLM-5.2的81.0。同一副身体，换了套训练方法，能力差出这么多。这说明后训练的空间被严重低估了，以后模型进步不一定靠更大，可能靠更会教。"},{"angle":"数据向","text":"把DeepSeek这次更新的数字摆一摆，你自己感受。七月31号，V4-Flash正式版API上线公测。规格是MoE架构，总参数2840亿，激活参数130亿，支持一百万token上下文，可以切换思考和非思考模式。关键在于，官方确认模型结构和尺寸与预览版完全一致，只重新做了后训练。再看跑分：DeepSWE从7.3涨到54.4，Terminal Bench 2.1拿到82.7，对比V4-Pro预览版的72.1、GLM-5.2的81.0、Opus-4.8的85.0，已经贴到第一梯队。落地速度也很快，网易有道八月一号宣布全线产品完成接入，覆盖办公助手、词典、翻译、AI同传，官方口径是同等任务复杂度下Token消耗更少，也就是同样的活花更少的钱。"},{"angle":"创作者视角","text":"这条新闻对普通用户到底意味着什么，我说三点。第一，你手里的AI助手会突然变聪明，不用换设备也不用多花钱。DeepSeek这次只重做了后训练，模型大小没变，但智能体能力涨了好几倍，DeepSWE从7.3到54.4。接入它的产品会跟着升级，网易有道七月31号当天就宣布全线接入了。第二，能干的活变了。以前的AI是你问一句它答一句，现在的重点是多步骤任务和工具调用，你说个目标，它自己拆步骤、自己调工具、自己纠错，Terminal Bench测的就是这个。第三，成本会降，同样的任务用更少的Token跑完，长期看就是同样的钱能干更多活。建议你重新试一遍那些半年前觉得AI干不了的事。"}]},{"id":"ai3","title":"九万人天天在用的AI同事，长什么样","hook":"判断AI产品好不好用，只看一个数：内部多少人天天用。","why":"有官方披露的落地数字，比任何跑分都有说服力。可直接迁移成个人工作流方法，实用性强。","heat":"中高","tags":["玩法","实用","可复用"],"facts":["搭载 LongCat 2.0 的美团全场景 AI Agent 平台 CatPaw 正式上线，提供开箱即用的AI智能工作台与企业级Agent开发托管能力（美团技术博客 tech.meituan.com，2026-07-28）","官方披露：CatPaw 已在美团内部大规模落地，累计覆盖9万员工、搭建Agent 3万个（同上）","支持移动端App与PC客户端双端任务实时同步；云端模式支持7×24小时不间断运行，本地设备关机或断网不受影响，长程任务与定时任务在云端持续运转（同上）","内置专家与技能库，覆盖门店评价诊断与优化、商品文案生成、营销物料设计评估、活动策划、经营数据分析等场景，可从专家广场一键安装，也可通过对话把自己的工作方式封装为专属专家（同上）","企业侧提供数字员工能力：扫码即可在飞书、企业微信中部署，@即可调用；Agent运行环境严格隔离、凭证集中托管（网易转载官方口径，2026-08-01）"],"scripts":[{"angle":"功能详解","text":"美团上线了一个叫CatPaw的AI智能体平台，搭载自家的LongCat 2.0，几个设计值得看。第一，三端打通。手机、电脑、云端任务实时同步，手机上发起任务，电脑上接着干，云端支持七乘二十四小时跑，本地关机断网都不影响，长任务和定时任务在云上继续，第二天打开就有结果。第二，专家和技能库。它把能力封装成一个个AI专家，从专家广场一键安装，也可以把自己的工作方式通过对话打包成专属专家，团队共享复用。内置技能覆盖门店评价诊断、商品文案生成、营销物料评估、活动策划、经营数据分析，都是美团在本地生活攒了十几年的东西。第三，企业能扫码在飞书或者企业微信里部署一个数字员工，@一下就干活，运行环境隔离，凭证集中托管。"},{"angle":"实操流程","text":"想把AI真正用进日常工作，可以参考CatPaw这套路径，跟你用什么工具无关。第一步，别追求一个万能助手，先把你重复度最高的三件事列出来。美团内部覆盖九万员工、搭了三万个Agent，平均下来就是每人几个小工具，不是一个大而全的东西。第二步，把这些活封装成固定的专家或者模板，一次配好长期复用，而不是每次重新写提示词。第三步，把长任务丢到云端跑。CatPaw的云端模式支持七乘二十四小时，本地关机也在跑，这个思路值得抄——耗时的活睡前发起，早上收结果。第四步，接进你已经在用的沟通工具，飞书或者企业微信里@一下就能用，比让团队再装一个新App的落地率高得多。第五步，权限和凭证要隔离，这条别省。"},{"angle":"方法论","text":"判断一个AI产品是不是真能用，我只看一个指标：内部有多少人天天用。美团公布CatPaw已经覆盖九万员工、搭建了三万个Agent，这个数字比任何跑分都有说服力，因为九万人不会天天配合你演示。围绕这个标准，看AI工具可以问三个问题。第一，它有没有在真实业务里跑，还是只在发布会里跑。第二，它解决的是不是高频重复的活，像门店评价诊断、商品文案、经营数据分析这类，频次够高才值得投入配置成本。第三，它能不能嵌进现有的工作流。CatPaw选择在飞书和企业微信里部署数字员工，而不是让你再开一个新App，这个选择很关键。工具再强，如果要改变团队习惯才能用，落地率就会很低。"}]},{"id":"ai4","title":"游戏公司86%都在用AI，Steam上AI辅助的游戏破了一万款","hook":"游戏行业里，不用AI的已经是少数派。","why":"行业渗透率数据够硬，86%这个数字本身就是钩子。可延伸到任何行业的从业者焦虑，覆盖面广。","heat":"中高","tags":["行业","趋势","泛人群"],"facts":["8月1日ChinaJoy期间披露，中国音像与数字出版协会数据显示当前游戏企业AI技术普及率已达86%（蓝鲸新闻2026-08-01）","Steam平台标注为AI辅助创作的游戏已突破一万款（同上）","Unity中国发布团结引擎2.0，并推出AI开发智能体 Tuanjie Codely（同上）","7月31日ChinaJoy上腾讯游戏展示覆盖研发全流程的AI工具体系，《猫仙札》将AI Agent与女性向叙事结合，《代号Craft》支持自然语言生成可运行游戏雏形（九派娱乐2026-08-01）","行业讨论重点从「能不能用」转向「怎么用好Agent」（蓝鲸新闻2026-08-01）"],"scripts":[{"angle":"数据向","text":"游戏行业的AI渗透率，比大部分人想的高得多。ChinaJoy期间，中国音像与数字出版协会披露的数据：当前游戏企业AI技术普及率已经达到86%。同时，Steam平台上标注为AI辅助创作的游戏已经突破一万款。工具侧也在跟进，Unity中国发布了团结引擎2.0，推出AI开发智能体Tuanjie Codely。腾讯游戏在七月31号的展台上，拿出了覆盖研发全流程的AI工具体系，其中《代号Craft》支持用自然语言生成可运行的游戏雏形。把这几条放一起看，行业讨论的重点已经从能不能用AI，变成了怎么用好智能体。86%这个数字的意思是，不用AI的才是少数派。对从业者来说，问题不再是要不要学，而是学哪一段。"},{"angle":"趋势判断","text":"游戏行业86%的AI普及率，说明了一件事：AI已经过了尝鲜期，进入标配期。判断依据有三条。第一，供给端产能被放大，Steam上标注AI辅助创作的游戏突破一万款，这个量级意味着独立开发者的门槛被拉平，以前需要一整个美术团队才能做的东西，现在一个人可能就能出雏形。第二，工具链在往引擎层沉。Unity中国的团结引擎2.0直接带了AI开发智能体Tuanjie Codely，说明AI不再是外挂插件，而是进了生产管线。第三，大厂在做体系而不是单点，腾讯游戏展示的是覆盖研发全流程的工具体系，《代号Craft》能用自然语言生成可运行的游戏雏形。产能上来之后，稀缺的就不再是做得出来，而是有没有人愿意玩。"},{"angle":"反常识开场","text":"AI让做游戏变容易了，但这对开发者可能不是好消息。数据摆着：游戏企业AI技术普及率已经到86%，Steam上标注AI辅助创作的游戏突破一万款。工具也在往下沉，Unity中国的团结引擎2.0带了AI开发智能体，腾讯的《代号Craft》能用自然语言生成可运行的游戏雏形。听上去是门槛降低、人人可做。问题在于，门槛降低是对所有人降低的。以前你的护城河可能是会用引擎、能写着色器、能建模，这些技能的稀缺性正在被抹平。当供给端一年多出上万款游戏，玩家的注意力并没有跟着变多。所以真正值钱的东西在往两头跑：一头是审美和创意，一头是发行和分发。中间那段纯执行的活，最先被吃掉。"}]},{"id":"ai5","title":"AI做内容的成本塌了，接下来拼的不是产能","hook":"素材成本降九成之后，堆量这条路就废了。","why":"直接对着做内容的人群说话，立人设。有上市公司公开数据支撑，长效不过期。","heat":"中","tags":["方法论","成本","立人设"],"facts":["7月30日蓝色光标官宣与字节火山引擎达成AI营销深度合作，自研BlueAI平台接入豆包多模态模型，已落地上百套营销专属智能体，称素材制作成本下降90%以上（腾讯新闻转述，2026-07-30）","蓝色光标2025年AI业务营收37.25亿元，同比增长超210%（同上）","MiniMax于8月1日发布开放权重多模态模型H3：2K分辨率下每秒价格不到主流模型的三分之一，768p不到主流720p的一半（MiniMax官方博客；Momenta Media 2026-08-01）","Steam上标注AI辅助创作的游戏已突破一万款，供给端产能整体放大（中国音像与数字出版协会，2026-08-01）","待核实：「武汉某企业级智能体系统单条视频制作成本降至50元以下、某教育机构月产视频从120条增至超1000条、粉丝三个月从2万增至27万」仅见单一自媒体来源，未写入口播稿正文"],"scripts":[{"angle":"成本账","text":"AI做内容的成本已经塌了，这是今年最确定的一件事。举两个能查到的数字。蓝色光标七月30号官宣和火山引擎的AI营销合作，自研平台接入豆包多模态模型，落地了上百套营销智能体，官方口径是素材制作成本下降90%以上；这家公司2025年的AI业务营收37.25亿元，同比增长超过210%。视频这边，MiniMax八月一号发布的H3，2K分辨率下每秒价格不到主流模型的三分之一，768p不到主流720p的一半。成本降到这个程度，意味着多做一条片子的边际成本接近于零。那接下来拼什么？拼选题、拼真实感、拼你有没有别人拿不到的信息。工具人人都有，成本人人都低，剩下的差距只能在这三样上拉开。"},{"angle":"方法论","text":"成本降了九成之后，内容这行的竞争点变了，我的判断是三条。第一，量不再是壁垒。当素材制作成本能降90%以上，谁都能一天出几十条，堆量这条路会迅速失效，平台的推荐逻辑也会跟着调整。第二，稀缺的是输入不是输出。AI能帮你把想法变成片子，但想法本身、你踩过的坑、你手里的一手数据，它给不了。所以时间该花在采集和验证上，而不是花在剪辑上。第三，人格权重在上升。同样的信息，观众更愿意从一个具体的人嘴里听到，这也是为什么真人出镜、固定人设、稳定更新这三件事的价值在涨。给个具体做法：把省下来的制作时间，一半用来做选题调研，一半用来打磨开头三秒，比多发十条有用。"},{"angle":"创作者视角","text":"如果你现在开始用AI做内容，有三个坑建议提前避开。第一，别用AI写完整的口播稿。它写出来的东西句式高度统一，观众听两句就能察觉，完播率会掉。正确用法是让它帮你查资料、列事实、找反例，稿子自己组织。第二，别追工具。MiniMax的H3把2K每秒价格压到主流模型的三分之一以下，这类降价还会继续发生，工具追不完，而且工具的领先最多也就几周。第三，别只看成本不看分发。蓝色光标那边素材成本降了九成以上，产能上去了，但观众的注意力总量没变，这意味着竞争会更激烈而不是更轻松。真正该投入的是选题判断和一手信息，这两样AI替不了，也是你能长期收租的地方。"}]}]}]}</script>
+<script id="packHistory" type="application/json">{}</script>
+
+<script>
+/* ================= data ================= */
+var K={st:'wb_kb_status_v1',rf:'wb_kb_refs_v1',hs:'wb_kb_history_v1',mt:'wb_kb_meta_v1'};
+var PACK_TODAY=JSON.parse(document.getElementById('packToday').textContent);
+var PACK_HIST=JSON.parse(document.getElementById('packHistory').textContent);
+var ST={},RF=[],HS={},MT={};
+var curDate=PACK_TODAY.date,curTrack='all',curSt='all',curPane='today';
+var STATES=['new','pick','shot','pub'];
+var ST_LABEL={new:'未处理',pick:'已选用',shot:'已拍',pub:'已发'};
+var ST_CLS={new:'st-new',pick:'st-pick',shot:'st-shot',pub:'st-pub'};
+
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('存储写入失败，建议先导出备份');return false}}
+function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function p2(n){return n<10?'0'+n:''+n}
+function daysBetween(a,b){var x=new Date(a+'T00:00:00'),y=new Date(b+'T00:00:00');return Math.round((y-x)/86400000)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function wc(s){return (s||'').replace(/\s/g,'').length}
+function secOf(s){return Math.round(wc(s)/300*60)}
+
+function boot(){
+  ST=lsGet(K.st,{});RF=lsGet(K.rf,[]);HS=lsGet(K.hs,{});MT=lsGet(K.mt,{});
+  for(var d in PACK_HIST){if(!HS[d])HS[d]=PACK_HIST[d]}
+  HS[PACK_TODAY.date]=PACK_TODAY;
+  var keys=Object.keys(HS).sort().reverse();
+  if(keys.length>30){keys.slice(30).forEach(function(k){delete HS[k]})}
+  lsSet(K.hs,HS);
+  curDate=PACK_TODAY.date;
+  renderAll();
+  checkTip();
+}
+function packOf(d){return HS[d]||PACK_TODAY}
+function allScripts(d){
+  var p=packOf(d),out=[];
+  (p.tracks||[]).forEach(function(tk){(tk.topics||[]).forEach(function(tp,ti){(tp.scripts||[]).forEach(function(sc,si){
+    out.push({id:d+'|'+tk.id+'|'+tp.id+'|'+si,date:d,trackId:tk.id,trackName:tk.name,topic:tp,topicIdx:ti,sc:sc,si:si});
+  })})});
+  return out;
+}
+function stOf(id){return (ST[id]&&ST[id].s)||'new'}
+function stTs(id){return (ST[id]&&ST[id].t)||null}
+function setSt(id,s){
+  if(s==='new'){delete ST[id]}else{ST[id]={s:s,t:today()}}
+  lsSet(K.st,ST);renderAll();checkTip();
+}
+
+/* ================= today ================= */
+function buildTodo(){
+  var td=today(),items=[];
+  Object.keys(HS).sort().reverse().forEach(function(d){
+    allScripts(d).forEach(function(x){
+      var s=stOf(x.id),t=stTs(x.id);
+      if(s==='pub')return;
+      if(s==='new'){
+        if(d===PACK_TODAY.date)items.push({x:x,kind:'new',od:false,msg:'今天新出的稿，还没看'});
+        return;
+      }
+      var age=t?daysBetween(t,td):0;
+      if(s==='pick')items.push({x:x,kind:'pick',od:age>=1,msg:age>=1?('选用了 '+age+' 天还没拍'):'今天选用，等拍'});
+      if(s==='shot')items.push({x:x,kind:'shot',od:age>=1,msg:age>=1?('拍完 '+age+' 天还没发'):'今天拍完，等发'});
+    })
+  });
+  items.sort(function(a,b){
+    if(a.od!==b.od)return a.od?-1:1;
+    var o={shot:0,pick:1,new:2};return o[a.kind]-o[b.kind];
+  });
+  return items;
+}
+function renderToday(){
+  var items=buildTodo(),od=items.filter(function(i){return i.od});
+  var td=PACK_TODAY.date,all=allScripts(td);
+  var cnt={new:0,pick:0,shot:0,pub:0};
+  all.forEach(function(x){cnt[stOf(x.id)]++});
+  var pubAll=0;Object.keys(HS).forEach(function(d){allScripts(d).forEach(function(x){if(stOf(x.id)==='pub')pubAll++})});
+
+  document.getElementById('stats').innerHTML=
+    st('今日新稿',all.length,'')+st('待拍',cnt.pick,'')+st('逾期',od.length,'od')+st('累计已发',pubAll,'dn');
+
+  var show=items.slice(0,8);
+  document.getElementById('todayN').textContent=items.length?(items.length+' 项待办'):'全部清空';
+  document.getElementById('tlist').innerHTML=show.length?show.map(function(i){
+    var nx=i.kind==='new'?'pick':(i.kind==='pick'?'shot':'pub');
+    var lb=i.kind==='new'?'选用':(i.kind==='pick'?'标已拍':'标已发');
+    return '<div class="titem'+(i.od?' od':'')+'">'+
+      '<div class="bd"><div class="t">'+esc(i.x.topic.title)+'　·　'+esc(i.x.sc.angle)+'</div>'+
+      '<div class="m">'+(i.x.date!==PACK_TODAY.date?('['+i.x.date+'] '):'')+esc(i.msg)+'</div></div>'+
+      '<button class="go" onclick="setSt(\''+i.x.id+'\',\''+nx+'\')">'+lb+'</button></div>';
+  }).join('')+(items.length>8?'<div style="text-align:center;font-size:12px;color:var(--text3);padding-top:4px">还有 '+(items.length-8)+' 项，去口播稿库看全部</div>':'')
+  :'<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>今天没有待办，去选题池挑几条</div>';
+
+  document.getElementById('navBdg').style.display=od.length?'':'none';
+  document.getElementById('navBdg').textContent=od.length;
+
+  var p=PACK_TODAY;
+  document.getElementById('ovCnt').textContent=p.tracks.reduce(function(a,t){return a+t.topics.length},0)+' 选题 / '+all.length+' 稿';
+  document.getElementById('overview').innerHTML=p.tracks.map(function(tk){
+    return '<div class="card tk-'+tk.id+'" style="margin-bottom:12px;padding:13px 14px">'+
+      '<div style="font-weight:700;font-size:14.5px;margin-bottom:9px;display:flex;align-items:center;gap:7px">'+
+      '<span style="width:8px;height:8px;border-radius:50%;background:var(--'+(tk.id==='travel'?'travel':'ai')+')"></span>'+esc(tk.name)+
+      '<span style="margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:600">'+tk.topics.length+' 条</span></div>'+
+      tk.topics.map(function(tp,i){
+        var done=tp.scripts.filter(function(_,si){return stOf(td+'|'+tk.id+'|'+tp.id+'|'+si)!=='new'}).length;
+        return '<div style="display:flex;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line2);font-size:13.5px;line-height:1.5">'+
+          '<span style="color:var(--text3);font-weight:700;font-variant-numeric:tabular-nums;flex:none">'+(i+1)+'</span>'+
+          '<span style="flex:1;min-width:0">'+esc(tp.title)+'</span>'+
+          '<span style="flex:none;font-size:11px;color:'+(done?'var(--ok)':'var(--text3)')+';font-weight:700">'+done+'/'+tp.scripts.length+'</span></div>';
+      }).join('')+'</div>';
+  }).join('');
+}
+function st(l,v,c){return '<div class="stat '+c+'"><b>'+v+'</b><span>'+l+'</span></div>'}
+
+/* ================= topics ================= */
+function renderTracks(){
+  var p=packOf(curDate);
+  var h='<button class="ttab'+(curTrack==='all'?' on':'')+'" data-k="all" onclick="setTrack(\'all\')">全部<span class="s">'+
+    p.tracks.reduce(function(a,t){return a+t.topics.length},0)+' 选题</span></button>';
+  p.tracks.forEach(function(tk){
+    h+='<button class="ttab'+(curTrack===tk.id?' on':'')+'" data-k="'+tk.id+'" onclick="setTrack(\''+tk.id+'\')">'+esc(tk.name)+'<span class="s">'+tk.topics.length+' 选题</span></button>';
+  });
+  document.getElementById('ttabs1').innerHTML=h;
+  document.getElementById('ttabs2').innerHTML=h;
+  var f=[['all','全部'],['new','未处理'],['pick','已选用'],['shot','已拍'],['pub','已发']];
+  document.getElementById('stfilter').innerHTML=f.map(function(x){
+    return '<button class="ttab'+(curSt===x[0]?' on':'')+'" data-k="all" style="font-size:12.5px;padding:8px 4px;min-height:40px" onclick="setStF(\''+x[0]+'\')">'+x[1]+'</button>';
+  }).join('');
+}
+function setTrack(t){curTrack=t;renderTracks();renderTopics();renderScripts()}
+function setStF(s){curSt=s;renderTracks();renderScripts()}
+function renderTopics(){
+  var p=packOf(curDate),h='';
+  p.tracks.forEach(function(tk){
+    if(curTrack!=='all'&&curTrack!==tk.id)return;
+    h+='<div class="topics-grid">'+tk.topics.map(function(tp,i){
+      var fid=tk.id+'_'+tp.id;
+      var done=tp.scripts.filter(function(_,si){return stOf(curDate+'|'+tk.id+'|'+tp.id+'|'+si)!=='new'}).length;
+      return '<div class="card topic tk-'+tk.id+'">'+
+        '<div class="tp-hd"><div class="tp-idx">'+(i+1)+'</div><div class="tp-main">'+
+        '<div class="tp-t">'+esc(tp.title)+'</div>'+
+        '<div class="tp-tags"><span class="tag hot">热度 '+esc(tp.heat)+'</span>'+
+        (tp.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+
+        '<span class="tag">'+done+'/'+tp.scripts.length+' 已处理</span></div>'+
+        '<div class="tp-why"><b>开场钩子：</b>'+esc(tp.hook)+'<br><b>为什么今天做：</b>'+esc(tp.why)+'</div>'+
+        '</div></div>'+
+        '<div class="fold"><button class="fold-b" onclick="fold(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>事实与数据（'+(tp.facts||[]).length+' 条，念之前先扫一眼）</button>'+
+        '<div class="fold-c"><ul class="facts">'+(tp.facts||[]).map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'</ul></div></div>'+
+        '<div class="scripts">'+tp.scripts.map(function(sc,si){return scHtml(tk,tp,sc,si)}).join('')+'</div>'+
+        '</div>';
+    }).join('')+'</div>';
+  });
+  document.getElementById('topicList').innerHTML=h||'<div class="card"><div class="empty">这天没有内容</div></div>';
+}
+function scHtml(tk,tp,sc,si){
+  var id=curDate+'|'+tk.id+'|'+tp.id+'|'+si,s=stOf(id),n=wc(sc.text),sec=secOf(sc.text);
+  var nx=s==='new'?'pick':(s==='pick'?'shot':(s==='shot'?'pub':'new'));
+  var nxL=s==='new'?'选用':(s==='pick'?'标已拍':(s==='shot'?'标已发':'重置'));
+  var t=stTs(id),od=(s==='pick'||s==='shot')&&t&&daysBetween(t,today())>=1;
+  return '<div class="sc">'+
+    '<div class="sc-hd"><span class="sc-a">'+esc(sc.angle)+'</span>'+
+    '<span class="sc-m">'+n+' 字 · 约 '+sec+' 秒</span>'+
+    '<span class="sc-st '+ST_CLS[s]+'">'+ST_LABEL[s]+(od?' · 逾期':'')+'</span></div>'+
+    '<div class="sc-tx" onclick="this.classList.toggle(\'open\')">'+esc(sc.text)+'</div>'+
+    '<div class="sc-acts">'+
+    '<button class="sbtn pri" onclick="copy(this,'+q(sc.text)+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制</button>'+
+    '<button class="sbtn" onclick="openTele('+q(tp.title+' · '+sc.angle)+','+q(sc.text)+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 8h12M6 12h8"/></svg>念稿</button>'+
+    '<button class="sbtn '+(od?'od':(s==='pub'?'act':''))+'" onclick="setSt(\''+id+'\',\''+nx+'\')">'+nxL+'</button>'+
+    (s!=='new'?'<button class="sbtn" onclick="setSt(\''+id+'\',\'new\')">撤销</button>':'')+
+    '</div></div>';
+}
+function q(s){return "'"+String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'')+"'"}
+function fold(b){b.classList.toggle('open');b.nextElementSibling.classList.toggle('open')}
+
+function renderScripts(){
+  var p=packOf(curDate),h='',n=0;
+  p.tracks.forEach(function(tk){
+    if(curTrack!=='all'&&curTrack!==tk.id)return;
+    tk.topics.forEach(function(tp,i){
+      var list=tp.scripts.map(function(sc,si){return {sc:sc,si:si}}).filter(function(o){
+        return curSt==='all'||stOf(curDate+'|'+tk.id+'|'+tp.id+'|'+o.si)===curSt;
+      });
+      if(!list.length)return;
+      n+=list.length;
+      h+='<div class="card topic tk-'+tk.id+'">'+
+        '<div class="tp-hd" style="padding-bottom:0"><div class="tp-idx">'+(i+1)+'</div><div class="tp-main"><div class="tp-t" style="font-size:14.5px">'+esc(tp.title)+'</div></div></div>'+
+        '<div class="scripts" style="border-top:none;margin-top:11px">'+list.map(function(o){return scHtml(tk,tp,o.sc,o.si)}).join('')+'</div></div>';
+    });
+  });
+  document.getElementById('scriptList').innerHTML=h||'<div class="card"><div class="empty">没有符合筛选的稿子</div></div>';
+}
+
+/* ================= refs ================= */
+var rStar=4;
+function renderStars(){
+  document.getElementById('rStars').innerHTML=[1,2,3,4,5].map(function(i){
+    return '<button class="star'+(i<=rStar?' on':'')+'" onclick="rStar='+i+';renderStars()"><svg viewBox="0 0 24 24"><path d="m12 2 2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.4 6 20.7l1.3-6.8-5-4.7 6.8-.9z"/></svg></button>';
+  }).join('');
+}
+function addRef(){
+  var t=document.getElementById('rTitle').value.trim();
+  if(!t){toast('标题得填一下');return}
+  RF.unshift({id:'r'+Date.now(),title:t,track:document.getElementById('rTrack').value,
+    author:document.getElementById('rAuthor').value.trim(),link:document.getElementById('rLink').value.trim(),
+    star:rStar,note:document.getElementById('rNote').value.trim(),date:today()});
+  lsSet(K.rf,RF);
+  ['rTitle','rAuthor','rLink','rNote'].forEach(function(i){document.getElementById(i).value=''});
+  rStar=4;renderStars();renderRefs();toast('已存进灵感库');checkTip();
+}
+function delRef(id){RF=RF.filter(function(r){return r.id!==id});lsSet(K.rf,RF);renderRefs()}
+function renderRefs(){
+  document.getElementById('refCnt').textContent=RF.length+' 条';
+  var TN={travel:'旅游攻略',ai:'AI 资讯与玩法',other:'其他'};
+  document.getElementById('refList').innerHTML=RF.length?RF.map(function(r){
+    return '<div class="ref"><div class="ref-h"><div style="flex:1;min-width:0">'+
+      '<div class="ref-t">'+esc(r.title)+'</div>'+
+      '<div class="ref-m"><span class="tag">'+esc(TN[r.track]||r.track)+'</span>'+
+      (r.author?'<span>@'+esc(r.author)+'</span>':'')+
+      '<span style="color:#f5a623;letter-spacing:1px">'+'★'.repeat(r.star)+'<span style="color:#dfe3e8">'+'★'.repeat(5-r.star)+'</span></span>'+
+      '<span>'+esc(r.date)+'</span></div>'+
+      (r.note?'<div class="ref-n">'+esc(r.note)+'</div>':'')+
+      (r.link?'<a class="ref-l" href="'+esc(r.link)+'" target="_blank" rel="noopener">'+esc(r.link)+'</a>':'')+
+      '</div><button class="xbtn" onclick="delRef(\''+r.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div></div>';
+  }).join(''):'<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>刷到好片子就存一条，做选题时翻一翻</div>';
+}
+
+/* ================= teleprompter ================= */
+var teleSize=26,rolling=false,rollT=null,spd=1;
+function openTele(t,x){
+  document.getElementById('teleTitle').textContent=t;
+  document.getElementById('teleTx').textContent=x;
+  document.getElementById('teleBd').scrollTop=0;
+  document.getElementById('tele').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeTele(){stopRoll();document.getElementById('tele').classList.remove('on');document.body.style.overflow=''}
+function teleFont(d){teleSize=Math.max(16,Math.min(52,teleSize+d));document.getElementById('teleTx').style.fontSize=teleSize+'px'}
+function toggleRoll(){rolling?stopRoll():startRoll()}
+function startRoll(){
+  rolling=true;
+  document.getElementById('rollBtn').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>暂停';
+  var bd=document.getElementById('teleBd');
+  rollT=setInterval(function(){
+    bd.scrollTop+=spd*0.6;
+    if(bd.scrollTop+bd.clientHeight>=bd.scrollHeight-2)stopRoll();
+  },28);
+}
+function stopRoll(){
+  rolling=false;if(rollT)clearInterval(rollT);rollT=null;
+  var b=document.getElementById('rollBtn');
+  if(b)b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 3 14 9-14 9z"/></svg>自动滚动';
+}
+function rollSpeed(d){spd=Math.max(.4,Math.min(3,+(spd+d*.2).toFixed(1)));document.getElementById('spdTx').textContent='×'+spd.toFixed(1)}
+
+/* ================= backup ================= */
+function doExport(){
+  var d={_app:'kouban-workbench',_v:1,_at:new Date().toISOString(),status:ST,refs:RF,history:HS};
+  var b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='选题台备份_'+today()+'.json';a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1500);
+  MT.lastBackup=today();lsSet(K.mt,MT);hideTip();toast('已导出备份文件');
+}
+function doImport(el){
+  var f=el.files&&el.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!d||typeof d!=='object')throw 0;
+      if(d.status)ST=Object.assign({},d.status);
+      if(d.refs&&d.refs.length!==undefined)RF=d.refs.slice();
+      if(d.history)for(var k in d.history){if(!HS[k])HS[k]=d.history[k]}
+      HS[PACK_TODAY.date]=PACK_TODAY;
+      lsSet(K.st,ST);lsSet(K.rf,RF);lsSet(K.hs,HS);
+      renderAll();toast('已恢复：'+Object.keys(ST).length+' 条标记 / '+RF.length+' 条灵感');
+    }catch(e){toast('文件读不出来，确认是本站导出的 JSON')}
+    el.value='';
+  };
+  r.readAsText(f);
+}
+var mkFn=null;
+function askClear(){
+  openMask('确认清空全部数据？','会删掉所有标记状态（已选用/已拍/已发）、对标灵感库和历史归档。今天的选题和稿子不受影响，会重新加载。这一步撤不回来，建议先点「导出备份」。',function(){
+    localStorage.removeItem(K.st);localStorage.removeItem(K.rf);localStorage.removeItem(K.hs);localStorage.removeItem(K.mt);
+    ST={};RF=[];HS={};MT={};HS[PACK_TODAY.date]=PACK_TODAY;lsSet(K.hs,HS);
+    closeMask();curDate=PACK_TODAY.date;renderAll();toast('已清空');
+  });
+}
+function openMask(t,p,fn){
+  document.getElementById('mkT').textContent=t;document.getElementById('mkP').textContent=p;
+  mkFn=fn;document.getElementById('mask').classList.add('on');
+}
+function closeMask(){document.getElementById('mask').classList.remove('on')}
+document.getElementById('mkOk').onclick=function(){if(mkFn)mkFn()};
+document.getElementById('mask').onclick=function(e){if(e.target===this)closeMask()};
+
+function checkTip(){
+  var n=Object.keys(ST).length+RF.length;
+  if(n>=30&&MT.lastBackup!==today()&&!MT.tipHidden){
+    document.getElementById('tipTx').textContent='数据已经攒到 '+n+' 条了，建议点右上角导出一份备份。换手机、清缓存都不怕。';
+    document.getElementById('tipbar').classList.add('on');
+  }else{document.getElementById('tipbar').classList.remove('on')}
+}
+function hideTip(){MT.tipHidden=today();lsSet(K.mt,MT);document.getElementById('tipbar').classList.remove('on')}
+
+/* ================= misc ================= */
+function copy(btn,tx){
+  var ok=function(){var o=btn.innerHTML;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>已复制';setTimeout(function(){btn.innerHTML=o},1400);toast('全文已复制，'+wc(tx)+' 字')};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(tx).then(ok,function(){fb()})}else{fb()}
+  function fb(){
+    var ta=document.createElement('textarea');ta.value=tx;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');ok()}catch(e){toast('复制失败，长按稿子手动选')}
+    document.body.removeChild(ta);
+  }
+}
+var tT=null;
+function toast(m){
+  var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');
+  if(tT)clearTimeout(tT);tT=setTimeout(function(){e.classList.remove('on')},2100);
+}
+function go(p){
+  curPane=p;
+  document.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on')});
+  document.getElementById('p-'+p).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('on',b.dataset.p===p)});
+  window.scrollTo(0,0);
+}
+function switchDate(d){curDate=d;renderDateSel();renderTracks();renderTopics();renderScripts()}
+function renderDateSel(){
+  var ks=Object.keys(HS).sort().reverse();
+  var h=ks.map(function(d){return '<option value="'+d+'"'+(d===curDate?' selected':'')+'>'+d+(d===PACK_TODAY.date?'（最新）':'')+'</option>'}).join('');
+  document.getElementById('dateSel').innerHTML=h;
+  document.getElementById('dateSel2').innerHTML=h;
+  var bg=curDate===PACK_TODAY.date?'<span class="badge-live">今日最新</span>':'<span class="badge-old">历史归档</span>';
+  document.getElementById('dateBadge').innerHTML=bg;
+  document.getElementById('dateBadge2').innerHTML=bg;
+}
+function renderAll(){
+  document.getElementById('hdSub').textContent=PACK_TODAY.date+' · 更新于 '+(PACK_TODAY.updatedAt||'10:00')+' · 共 '+allScripts(PACK_TODAY.date).length+' 篇稿';
+  var ft='数据只存在这台设备的浏览器里，没有上传服务器。换设备 / 清缓存前记得导出备份。<br>每天 10:00 自动更新新一批选题与口播稿。';
+  ['foot1','foot2','foot3','foot4'].forEach(function(i){document.getElementById(i).innerHTML=ft});
+  renderDateSel();renderTracks();renderToday();renderTopics();renderScripts();renderRefs();renderStars();
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeTele();closeMask()}
+});
+boot();
+</script>
+</body>
+</html>
